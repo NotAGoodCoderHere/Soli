@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Soli</title>
+  </head>
+  <body>
+    <script>
+      var starting_time;
+      var final_time;
+
+      var deck = [];
+      var drawn = [];
+      var columns = [[], [], [], [], [], [], []];
+
+      const suits = ["♥", "♦", "♣", "♠"];
+      const cards = [
+        "A",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "J",
+        "Q",
+        "K",
+      ];
+
+      var goAhead = true;
+
+      function initDeck() {
+        deck = [];
+        for (var suit = 0; suit < suits.length; suit++) {
+          for (var value = 0; value < cards.length; value++) {
+            var card = {};
+            card["suit"] = suits[suit];
+            card["name"] = cards[value];
+            card["value"] = value + 1;
+            card["covered"] = true;
+            if (suits[suit] == "♥" || suits[suit] == "♦") {
+              card["color"] = "red";
+            } else {
+              card["color"] = "black";
+            }
+            deck.push(card);
+          }
+        }
+      }
+
+      function shuffleDeck() {
+        let currentIndex = deck.length;
+
+        while (currentIndex != 0) {
+          let randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex--;
+          [deck[currentIndex], deck[randomIndex]] = [
+            deck[randomIndex],
+            deck[currentIndex],
+          ];
+        }
+      }
+
+      function logDeck() {
+        for (var i = 0; i < deck.length; i++) console.log(deck[i]);
+      }
+
+      function initColums() {
+        if (deck.length != 52) return;
+        columns = [[], [], [], [], [], [], []];
+        for (var i = 0; i < columns.length; i++) {
+          for (var k = 0; k < i + 1; k++) {
+            var card = deck.pop();
+            columns[i].push(card);
+            if (k == i) card.covered = false;
+          }
+        }
+      }
+
+      function printColumns() {
+        var max_col_len = 0;
+        for (var i = 0; i < columns.length; i++)
+          if (columns[i].length > max_col_len) max_col_len = columns[i].length;
+        var out = "1   2   3   4   5   6   7\n";
+        for (var row = 0; row < max_col_len; row++) {
+          for (var col = 0; col < columns.length; col++) {
+            var card = columns[col][row];
+            if (!card) out += "    ";
+            else if (!card.covered) {
+              out += columns[col][row].suit + columns[col][row].name;
+              if (columns[col][row].name == "10") out += " ";
+              else out += "  ";
+            } else {
+              out += "██  ";
+            }
+          }
+          out += "\n";
+        }
+        console.log(out);
+      }
+
+      function move(from, to, n_cards) {
+        from--;
+        to--;
+
+        var middle = [];
+
+        if (columns[from].length < n_cards) return;
+
+        for (var i = 0; i < n_cards; i++) {
+          middle.push(columns[from].pop());
+        }
+
+        var valid = true;
+
+        if (columns[to].length == 0 && middle[0].name != "K") valid = false;
+        else if (
+          columns[to].length != 0 &&
+          middle[0].value != columns[to][columns[to].length - 1].value - 1
+        )
+          valid = false;
+        else if (
+          columns[to].length != 0 &&
+          middle[0].color == columns[to][columns[to].length - 1].color
+        )
+          valid = false;
+
+        if (valid)
+          for (var i = 0; i < n_cards; i++) {
+            columns[to].push(middle.pop());
+          }
+        else
+          for (var i = 0; i < n_cards; i++) {
+            columns[from].push(middle.pop());
+          }
+        
+          if (columns[from].length > 0) columns[from][columns[from].length -1 ].covered = false
+
+          printColumns()
+      }
+
+      function Game() {
+        initDeck();
+
+        shuffleDeck();
+        shuffleDeck();
+        shuffleDeck();
+
+        initColums();
+
+        printColumns();
+
+        starting_time = Date.now();
+      }
+
+      Game();
+
+      function input() {
+        var values = document.getElementById("input").value;
+        var inp = values.split(" ");
+        move(inp[0], inp[1], inp[2]);
+        document.getElementById("input").value = "";
+      }
+    </script>
+    <button onclick="input()">Go!</button>
+    <input type="text" id="input"></input>
+  </body>
+</html>

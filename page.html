@@ -8,9 +8,13 @@
       var starting_time;
       var final_time;
 
-      var deck = [];
+      var drawPile = [];
       var drawn = [];
-      var columns = [[], [], [], [], [], [], []];
+      var foundation = [[],[],[],[]];
+      var tableau = [[], [], [], [], [], [], []];
+      
+      var moves = 0
+      var score = 0
 
       const suits = ["♥", "♦", "♣", "♠"];
       const cards = [
@@ -31,8 +35,8 @@
 
       var goAhead = true;
 
-      function initDeck() {
-        deck = [];
+      function initDrawPile() {
+        drawPile = [];
         for (var suit = 0; suit < suits.length; suit++) {
           for (var value = 0; value < cards.length; value++) {
             var card = {};
@@ -45,52 +49,52 @@
             } else {
               card["color"] = "black";
             }
-            deck.push(card);
+            drawPile.push(card);
           }
         }
       }
 
-      function shuffleDeck() {
-        let currentIndex = deck.length;
+      function shuffleDrawPile() {
+        let currentIndex = drawPile.length;
 
         while (currentIndex != 0) {
           let randomIndex = Math.floor(Math.random() * currentIndex);
           currentIndex--;
-          [deck[currentIndex], deck[randomIndex]] = [
-            deck[randomIndex],
-            deck[currentIndex],
+          [drawPile[currentIndex], drawPile[randomIndex]] = [
+            drawPile[randomIndex],
+            drawPile[currentIndex],
           ];
         }
       }
 
-      function logDeck() {
-        for (var i = 0; i < deck.length; i++) console.log(deck[i]);
+      function logDrawPile() {
+        for (var i = 0; i < drawPile.length; i++) console.log(drawPile[i]);
       }
 
-      function initColums() {
-        if (deck.length != 52) return;
-        columns = [[], [], [], [], [], [], []];
-        for (var i = 0; i < columns.length; i++) {
+      function initTableau() {
+        if (drawPile.length != 52) return;
+        tableau = [[], [], [], [], [], [], []];
+        for (var i = 0; i < tableau.length; i++) {
           for (var k = 0; k < i + 1; k++) {
-            var card = deck.pop();
-            columns[i].push(card);
+            var card = drawPile.pop();
+            tableau[i].push(card);
             if (k == i) card.covered = false;
           }
         }
       }
 
-      function printColumns() {
+      function printTableau() {
         var max_col_len = 0;
-        for (var i = 0; i < columns.length; i++)
-          if (columns[i].length > max_col_len) max_col_len = columns[i].length;
+        for (var i = 0; i < tableau.length; i++)
+          if (tableau[i].length > max_col_len) max_col_len = tableau[i].length;
         var out = "1   2   3   4   5   6   7\n";
         for (var row = 0; row < max_col_len; row++) {
-          for (var col = 0; col < columns.length; col++) {
-            var card = columns[col][row];
+          for (var col = 0; col < tableau.length; col++) {
+            var card = tableau[col][row];
             if (!card) out += "    ";
             else if (!card.covered) {
-              out += columns[col][row].suit + columns[col][row].name;
-              if (columns[col][row].name == "10") out += " ";
+              out += tableau[col][row].suit + tableau[col][row].name;
+              if (tableau[col][row].name == "10") out += " ";
               else out += "  ";
             } else {
               out += "██  ";
@@ -101,56 +105,82 @@
         console.log(out);
       }
 
-      function move(from, to, n_cards) {
+      function moveToTableau(from, to, n_cards) {
+        if (from < 1 || from > 7) return console.log('colonna iniziale non esiste')
+        if (to < 1 || to > 7) return console.log('colonna finale non esiste')
+
         from--;
         to--;
 
-        var middle = [];
-
-        if (columns[from].length < n_cards) return;
-
-        for (var i = 0; i < n_cards; i++) {
-          middle.push(columns[from].pop());
-        }
-
+        if(n_cards < 1) return console.log('devi muovere almeno una carta');
+        if (tableau[from].length < n_cards) return console.log('cerchi di muovere troppe carte');
+        
+        var temp = [];
         var valid = true;
 
-        if (columns[to].length == 0 && middle[0].name != "K") valid = false;
-        else if (
-          columns[to].length != 0 &&
-          middle[0].value != columns[to][columns[to].length - 1].value - 1
-        )
-          valid = false;
-        else if (
-          columns[to].length != 0 &&
-          middle[0].color == columns[to][columns[to].length - 1].color
-        )
-          valid = false;
+        for (var i = 0; i < n_cards; i++) {
+          card = tableau[from].pop()
+          temp.push(card);
+          if (card.covered) {valid = false;console.log('non puoi muovere carte coperte')}
+        }
 
-        if (valid)
+        
+        // CONTROLLO VALIDITà MOSSA
+        
+        if (tableau[to].length == 0 && temp[0].name != "K")  {valid = false; console.log('solo i re nelle caselle vuote')}
+        else if (
+          tableau[to].length != 0 &&
+          temp.slice(-1)[0].value != tableau[to].slice(-1)[0].value - 1
+        ){
+          console.log('i valori non coincidono', temp.slice(-1)[0].value, tableau[to].slice(-1)[0].value)
+          valid = false;}
+        else if (
+          tableau[to].length != 0 &&
+          temp.slice(-1)[0].color == tableau[to].slice(-1)[0].color
+        ){
+          console.log('stessto colore')
+          valid = false;
+        }
+        
+        if (valid){
+          moves++
           for (var i = 0; i < n_cards; i++) {
-            columns[to].push(middle.pop());
+            tableau[to].push(temp.pop());
           }
+          //WIP SCORE
+        }
         else
           for (var i = 0; i < n_cards; i++) {
-            columns[from].push(middle.pop());
+            tableau[from].push(temp.pop());
           }
         
-          if (columns[from].length > 0) columns[from][columns[from].length -1 ].covered = false
+        // SCOPRI NUOVA CARTA
+        if (tableau[from].length > 0) tableau[from][tableau[from].length -1 ].covered = false
 
-          printColumns()
+          
+      }
+      function moveToFoundation(from, to){
+        if (false){}
       }
 
       function Game() {
-        initDeck();
 
-        shuffleDeck();
-        shuffleDeck();
-        shuffleDeck();
+        drawPile = [];
+        drawn = [];
+        foundation = [[],[],[],[]];
+        tableau = [[], [], [], [], [], [], []];
+        moves = 0
+        score = 0
 
-        initColums();
+        initDrawPile();
 
-        printColumns();
+        shuffleDrawPile();
+        shuffleDrawPile();
+        shuffleDrawPile();
+
+        initTableau();
+
+        printTableau();
 
         starting_time = Date.now();
       }
@@ -160,7 +190,8 @@
       function input() {
         var values = document.getElementById("input").value;
         var inp = values.split(" ");
-        move(inp[0], inp[1], inp[2]);
+        moveToTableau(inp[0], inp[1], inp[2]);
+        printTableau()
         document.getElementById("input").value = "";
       }
     </script>

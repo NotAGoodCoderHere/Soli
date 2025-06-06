@@ -1,0 +1,14 @@
+{
+  "name": "soliteir",
+  "version": "0.0.1",
+  "description": "the soliteir card game",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "run": "node app.js"
+  },
+  "dependencies": {
+    "sha256": "^0.2.0"
+  }
+}

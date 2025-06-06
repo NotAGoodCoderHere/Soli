@@ -1,1 +1,1 @@
-"# Soli" 
+the soliteir card game

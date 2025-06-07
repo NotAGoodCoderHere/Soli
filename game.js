@@ -1,6 +1,6 @@
-import sha256 from "sha256";
+import { sha1 } from "js-sha1"; // used to create the game id
 
-export const suits = ["♥", "♦", "♣", "♠"];
+export const suits = ["H", "D", "C", "S"];
 export const cards = [
   "A",
   "2",
@@ -11,7 +11,7 @@ export const cards = [
   "7",
   "8",
   "9",
-  "10",
+  "T",
   "J",
   "Q",
   "K",
@@ -26,9 +26,10 @@ export default class Game {
   #final_time = 0;
   #moves = 0;
   #score = 0;
+  #first_config = 0;
   constructor() {
     this.StartGame();
-    this.id = sha256(JSON.stringify(this.ToJson()));
+    this.id = sha1(JSON.stringify(this.ToJson()));
   }
 
   ClearDrawPile() {
@@ -45,7 +46,7 @@ export default class Game {
         card["name"] = cards[value];
         card["value"] = value + 1;
         card["covered"] = true;
-        if (suits[suit] == "♥" || suits[suit] == "♦") {
+        if (suits[suit] == "H" || suits[suit] == "D") {
           card["color"] = "red";
         } else {
           card["color"] = "black";
@@ -69,7 +70,10 @@ export default class Game {
     }
     return this;
   }
-
+  TripleShuffle() {
+    for (var i = 0; i < 3; i++) this.ShuffleDrawpile();
+    return this;
+  }
   LogDrawPile() {
     for (var i = 0; i < this.#drawPile.length; i++)
       console.log(this.#drawPile[i]);
@@ -100,9 +104,8 @@ export default class Game {
         var card = this.#tableau[col][row];
         if (!card) out += "    ";
         else if (!card.covered) {
-          out += this.#tableau[col][row].suit + this.#tableau[col][row].name;
-          if (this.#tableau[col][row].name == "10") out += " ";
-          else out += "  ";
+          out += this.#tableau[col][row].name + this.#tableau[col][row].suit;
+          out += "  ";
         } else {
           out += "██  ";
         }
@@ -196,10 +199,31 @@ export default class Game {
     return this;
   }
 
-  MoveFoundation(from, to) {
-    if (false) {
+  DrawFromDrawPile() {
+    if (this.#drawPile.length < 1) {
+      console.log("non ci sono carte da pescare");
+      return this;
     }
+    var card = this.#drawPile.pop();
+    card.covered = false;
+    this.#drawn.push(card);
     return this;
+  }
+
+  RefillDrawPile() {
+    if (this.#drawPile.length != 0) {
+      console.log("si può nacora pescare");
+      return this;
+    }
+    if (this.#drawn.length == 0) {
+      console.log("non hai ancora pescato");
+      return this;
+    }
+    while (this.#drawn.length > 0) {
+      var card = this.#drawn.pop();
+      card.covered = true;
+      this.#drawPile.push(card);
+    }
   }
 
   ClearFoundation() {
@@ -216,24 +240,49 @@ export default class Game {
     this.#moves = 0;
     this.#score = 0;
 
-    this.InitDrawPile()
-      .ShuffleDrawpile()
-      .ShuffleDrawpile()
-      .ShuffleDrawpile()
-      .InitTableau();
+    this.InitDrawPile().TripleShuffle().InitTableau();
 
     this.#starting_time = Date.now();
 
     return this;
   }
   ToJson() {
+    //CARTE SCOPERTE
+
+    var jstab = [];
+    for (var i = 0; i < this.#tableau.length; i++) {
+      var count = 0;
+      var uncovered = [];
+      for (var k = 0; k < this.#tableau[i].length; k++) {
+        if (this.#tableau[i][k].covered) count++;
+        else
+          uncovered.push(this.#tableau[i][k].name + this.#tableau[i][k].suite);
+      }
+      var col = [count].concat(uncovered);
+      jstab.push(col);
+    }
+
+    var jsfound = [];
+
+    for (var i = 0; i < this.#foundation.length; i++) {
+      jsfound.push(
+        this.#foundation[i].length > 0
+          ? this.#foundation[i].slice(-1)[0].name +
+              this.#foundation[i].slice(-1)[0].suit
+          : null
+      );
+    }
+
     return {
-      drawPile: this.#drawPile,
-      drawn: this.#drawn,
-      foundation: this.#foundation,
-      tableau: this.#tableau,
+      candraw: this.#drawPile.length > 0,
+      drawn:
+        this.#drawn.length > 0
+          ? this.#drawn.slice(-1)[0].name + this.#drawn.slice(-1)[0].suit
+          : null,
+      foundation: jsfound,
+      tableau: jstab,
       starting_time: this.#starting_time,
-      final_time: this.#final_time,
+      final_time: this.#final_time != 0 ? this.#final_time : null,
       moves: this.#moves,
       score: this.#score,
     };

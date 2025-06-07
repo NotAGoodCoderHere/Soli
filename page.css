@@ -1,0 +1,24 @@
+:root{
+  --card-width:164px;
+  --card-height:230px
+}
+.tableau{
+  margin-top: 30px;
+  position: relative;
+}
+.card{
+  position: absolute;
+  height: var(--card-height);
+  width: var(--card-width);
+  perspective: 1000px;
+  cursor: pointer;
+}
+.card-img{
+  height: var(--card-height);
+}
+.card-back{
+  transform: rotateY(180deg);
+}
+.card:hover .card-inner{
+transform: rotateY(180deg);
+}

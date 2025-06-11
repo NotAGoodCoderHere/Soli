@@ -2,6 +2,9 @@
   --card-width:164px;
   --card-height:230px
 }
+.main{
+  user-select: none;
+}
 .tableau{
   margin-top: 30px;
   position: relative;

@@ -1,5 +1,7 @@
+import Card from "./card";
+
 export default class Foundation {
-  #foundation = [[], [], [], []];
+  #foundation: Card[][] = [[], [], [], []];
   Clear() {
     for (var i = 0; i < this.#foundation.length; i++)
       this.#foundation[i].length = 0;
@@ -7,10 +9,9 @@ export default class Foundation {
   }
   Push() {
     if (arguments.length == 1) {
-      this.autoPush();
-    } else if (arguments.length == 2){
-      push
+      this.AutoPush();
+    } else if (arguments.length == 2) {
     }
-
   }
+  AutoPush() {}
 }

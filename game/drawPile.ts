@@ -1,13 +1,13 @@
 import Card from "./card";
 
 export default class DrawPile {
-  #drawPile = [];
-  #drawn = [];
+  #drawPile: Card[] = [];
+  #index = 0;
   Clear() {
     this.#drawPile.length = 0;
     return this;
   }
-  Reset() {
+  NewPile() {
     this.Clear();
     for (var suit = 0; suit < Card.suits.length; suit++) {
       for (var value = 1; value <= Card.cards.length; value++) {
@@ -17,7 +17,7 @@ export default class DrawPile {
     return this;
   }
 
-  Shuffle(n) {
+  Shuffle(n: number) {
     if (this.#drawPile.length < 2) return this;
     if (!n) n = 3;
 
@@ -42,30 +42,27 @@ export default class DrawPile {
     return this;
   }
 
-  Draw() {
-    if (this.#drawPile.length < 1) {
-      console.log("non ci sono carte da pescare");
-      return this;
+  Draw(): Card | null {
+    if (this.#index >= this.#drawPile.length) {
+      this.Refill();
+      return null;
     }
-    var card = this.#drawPile.pop();
-    card.covered = false;
-    this.#drawn.push(card);
-    return this;
+    var card = this.#drawPile[this.#index];
+    this.#drawPile.splice(this.#index, 1);
+    return card;
+  }
+  Current() {
+    if (this.#index >= this.#drawPile.length) return null;
+    return this.#drawPile[this.#index];
+  }
+  Next() {
+    this.#index++;
+    if (this.#index >= this.#drawPile.length) this.Refill();
   }
 
   Refill() {
-    if (this.#drawPile.length != 0) {
-      console.log("si può nacora pescare");
-      return this;
-    }
-    if (this.#drawn.length == 0) {
-      console.log("non hai ancora pescato");
-      return this;
-    }
-    while (this.#drawn.length > 0) {
-      var card = this.#drawn.pop();
-      card.covered = true;
-      this.#drawPile.push(card);
-    }
+    if (this.#drawPile.length < 1) return;
+    if (this.#index < this.#drawPile.length - 1) return;
+    this.#index = 0;
   }
 }

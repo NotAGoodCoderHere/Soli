@@ -1,4 +1,10 @@
 export default class Card {
+  suit: string;
+  name: string;
+  value: number;
+  covered: boolean;
+  color: string;
+
   static suits = ["H", "D", "C", "S"];
   static cards = [
     "A",
@@ -15,12 +21,13 @@ export default class Card {
     "Q",
     "K",
   ];
-  constructor(suit, value) {
-    this.suit = suits[suit];
-    this.name = cards[value - 1];
+
+  constructor(suit: number, value: number) {
+    this.suit = Card.suits[suit];
+    this.name = Card.cards[value - 1];
     this.value = value;
     this.covered = true;
-    if (suits[suit] == "H" || suits[suit] == "D") {
+    if (Card.suits[suit] == "H" || Card.suits[suit] == "D") {
       this.color = "red";
     } else {
       this.color = "black";
@@ -32,4 +39,5 @@ export default class Card {
   Reveal() {
     this.covered = false;
   }
+  Stringify() {}
 }

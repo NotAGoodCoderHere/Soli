@@ -1,4 +1,4 @@
-import Game from "./game.js"; //import functions that manage the game
+import Game from "./game/game"; //import functions that manage the game
 import express from "express"; //libraray for the web
 import bodyParser from "body-parser"; //library to semplify retrieving data from reqests
 
@@ -9,25 +9,30 @@ app.use((req, res, next) => {
   return next();
 });
 
-const games = new Map();
+const games = new Map<string, Game>();
 
 app.get("/newgame", (req, res) => {
   console.time("creazione mazzo");
   var gm = new Game();
   games.set(gm.id, gm);
-  var answ = {};
-  answ.game = gm.ToJson();
-  answ.id = gm.id;
+  var answ = {
+    game: gm.Stringify(),
+    id: gm.id,
+  };
   console.timeEnd("creazione mazzo");
-
   res.json(answ);
 });
 
 app.get("/games", (req, res) => {
   console.time("itera sulle partite");
-  var out = {};
-  out.count = games.size;
-  games.forEach((v, k, m) => (out[k] = v.ToJson()));
+  var gms = new Map<string, string>();
+
+  games.forEach((v, k, m) => gms.set(k, v.Stringify()));
+  console.log(gms);
+  var out = {
+    num: games.size,
+  };
+
   console.timeEnd("itera sulle partite");
   res.json(out);
 });
@@ -42,7 +47,7 @@ app.post("/game", (req, res) => {
     return res.status(404);
   }
   console.timeEnd("trova partita");
-  return res.send(game.ToJson());
+  return res.send(game.Stringify());
 });
 
 app.get("/game/:id", (req, res) => {
@@ -79,9 +84,9 @@ app.post("/move/:id", (req, res) => {
     return res.status(404);
   }
 
-  gm.move(from, to, n_cards);
+  gm.T2T(from, to, n_cards);
 
-  res.json(gm.ToJson());
+  res.json(gm.Stringify());
 });
 
 app.listen(3000, () => console.log("listening on port 3000"));
